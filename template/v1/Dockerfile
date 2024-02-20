@@ -41,9 +41,15 @@ RUN apt-get update && \
     :
 RUN echo "source /usr/local/bin/_activate_current_env.sh" | tee --append /etc/profile
 
+# Create server, user data dirs for code editor
+# Why ? 
+RUN mkdir -p /opt/amazon/sagemaker/sagemaker-code-editor-server-data /opt/amazon/sagemaker/sagemaker-code-editor-user-data \
+    && chown $MAMBA_USER:$MAMBA_USER /opt/amazon/sagemaker/sagemaker-code-editor-server-data /opt/amazon/sagemaker/sagemaker-code-editor-user-data
+
 USER $MAMBA_USER
 COPY --chown=$MAMBA_USER:$MAMBA_USER $ENV_IN_FILENAME *.in /tmp/
 
+# TODO - Add sagemaker-code-editor to env.in file
 # Make sure that $ENV_IN_FILENAME has a newline at the end before the `tee` command runs. Otherwise, nasty things
 # will happen.
 RUN if [[ -z $ARG_BASED_ENV_IN_FILENAME ]] ; \
@@ -59,6 +65,35 @@ RUN micromamba install -y --name base --file /tmp/$ENV_IN_FILENAME && \
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN sudo ln -s $(which python3) /usr/bin/python
+
+# Merge in OS directory tree contents.
+RUN mkdir -p ${DIRECTORY_TREE_STAGE_DIR}
+COPY dirs/ ${DIRECTORY_TREE_STAGE_DIR}/
+RUN rsync -a ${DIRECTORY_TREE_STAGE_DIR}/ / && \
+    rm -rf ${DIRECTORY_TREE_STAGE_DIR}
+
+# Configure CodeEditor
+RUN mkdir /tmp/exts
+COPY dirs/etc/code-editor/extensions/*.vsix /tmp/exts/
+RUN \
+    tdir=/tmp/exts && cd "${tdir}" \
+    && extensionloc=/opt/amazon/sagemaker/sagemaker-code-editor-server-data/extensions && mkdir -p "${extensionloc}" \
+    && \
+    # List the extensions in this array
+    exts=(\
+            ms-toolsai.jupyter-2023.9.100.vsix \
+            ms-python.python-2023.20.0.vsix \
+            aws-toolkit-vscode-1.99.0-a2b905e590d3.vsix \
+    )\
+    # Find and install all .vsix files in the directory
+    for ext in /tmp/exts/*.vsix; do sagemaker-code-editor --install-extension "${ext}" --extensions-dir "${extensionloc}"; done \
+    && rm -rf ${tdir} \
+    # Create a directory for 'Machine' configuration
+    && mkdir -p /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/ \
+    # configure code editor settings 1/ disable a default env activate behavior of python  2/ set default python interpreter to cosmos env
+    && cp code_editor_machine_settings.json /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json \
+    # TODO - the ripgrep in node_modules generates a core file for every search - so replacing with conda rg
+    && cp /opt/conda/bin/rg /opt/conda/share/sagemaker-code-editor/node_modules/@vscode/ripgrep/bin/
 
 # Install glue kernels, and move to shared directory
 # Also patching base kernel so Studio background code doesn't start session silently
@@ -86,12 +121,6 @@ RUN HOME_DIR="/home/${NB_USER}/licenses" \
     && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
     && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
     && rm -rf ${HOME_DIR}/oss_compliance*
-
-# Merge in OS directory tree contents.
-RUN mkdir -p ${DIRECTORY_TREE_STAGE_DIR}
-COPY dirs/ ${DIRECTORY_TREE_STAGE_DIR}/
-RUN rsync -a ${DIRECTORY_TREE_STAGE_DIR}/ / && \
-    rm -rf ${DIRECTORY_TREE_STAGE_DIR}
 
 # Create logging directories for supervisor
 RUN mkdir -p $SAGEMAKER_LOGGING_DIR && \
