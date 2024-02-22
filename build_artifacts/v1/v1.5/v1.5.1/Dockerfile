@@ -86,15 +86,14 @@ RUN \
             ms-python.python-2023.20.0.vsix \
             aws-toolkit-vscode-1.99.0-a2b905e590d3.vsix \
     )\
-    # Find and install all .vsix files in the directory
-    for ext in /tmp/exts/*.vsix; do sagemaker-code-editor --install-extension "${ext}" --extensions-dir "${extensionloc}"; done \
-    && rm -rf ${tdir} \
-    # Create a directory for 'Machine' configuration
+    #Install the $exts
+    && for ext in "${exts[@]}"; do sagemaker-code-editor --install-extension "/tmp/exts/${ext}" --extensions-dir "${extensionloc}"; done \
     && mkdir -p /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/ \
     # configure code editor settings 1/ disable a default env activate behavior of python  2/ set default python interpreter to cosmos env
-    && cp code_editor_machine_settings.json /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json \
-    # TODO - the ripgrep in node_modules generates a core file for every search - so replacing with conda rg
-    && cp /opt/conda/bin/rg /opt/conda/share/sagemaker-code-editor/node_modules/@vscode/ripgrep/bin/
+    && echo "{\"python.terminal.activateEnvironment\": false, \"python.defaultInterpreterPath\": \"/opt/conda/bin/python\"}" > /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json \
+    # the ripgrep in node_modules generates a core file for every search - so replacing with conda rg for now - to be fixed in recipe later
+    && cp /opt/conda/bin/rg /opt/conda/share/sagemaker-code-editor/node_modules/@vscode/ripgrep/bin/ \
+    && rm -rf ${tdir}
 
 # Install glue kernels, and move to shared directory
 # Also patching base kernel so Studio background code doesn't start session silently
