@@ -71,8 +71,10 @@ ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN sudo ln -s $(which python3) /usr/bin/python
 
 # TODO - Configure CodeEditor - Install extensions and set preferences
-RUN echo "just chceking if conda env is active"
+RUN echo "print current active conda env"
 RUN conda env list
+RUN echo "checking if code-editor is found"
+RUN sagemaker-code-editor --version
 
 RUN mkdir /tmp/exts
 COPY dirs/etc/code-editor/extensions/*.vsix /tmp/exts/
