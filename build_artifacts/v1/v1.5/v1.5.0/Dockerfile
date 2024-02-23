@@ -54,8 +54,6 @@ RUN rsync -a ${DIRECTORY_TREE_STAGE_DIR}/ / && \
 USER $MAMBA_USER
 COPY --chown=$MAMBA_USER:$MAMBA_USER $ENV_IN_FILENAME *.in /tmp/
 
-# TODO - Add sagemaker-code-editor to env.in file
-
 # Make sure that $ENV_IN_FILENAME has a newline at the end before the `tee` command runs. Otherwise, nasty things
 # will happen.
 RUN if [[ -z $ARG_BASED_ENV_IN_FILENAME ]] ; \
@@ -73,6 +71,30 @@ ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN sudo ln -s $(which python3) /usr/bin/python
 
 # TODO - Configure CodeEditor - Install extensions and set preferences
+RUN echo "just chceking if conda env is active"
+RUN conda env list
+
+RUN mkdir /tmp/exts
+COPY dirs/etc/code-editor/extensions/*.vsix /tmp/exts/
+RUN \
+    tdir=/tmp/exts && cd "${tdir}" \
+    && extensionloc=/opt/amazon/sagemaker/sagemaker-code-editor-server-data/extensions && mkdir -p "${extensionloc}" \
+    && \
+    # List the extensions in this array
+    exts=(\
+            ms-toolsai.jupyter-2023.9.100.vsix \
+            ms-python.python-2023.20.0.vsix \
+            aws-toolkit-vscode-1.99.0-a2b905e590d3.vsix \
+    )\
+    #Install the $exts
+    && for ext in "${exts[@]}"; do sagemaker-code-editor --install-extension "/tmp/exts/${ext}" --extensions-dir "${extensionloc}"; done \
+    && mkdir -p /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/ \
+    # configure code editor settings 1/ disable a default env activate behavior of python  2/ set default python interpreter to cosmos env
+    && echo "{\"python.terminal.activateEnvironment\": false, \"python.defaultInterpreterPath\": \"/opt/conda/bin/python\"}" > /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json \
+    # the ripgrep in node_modules generates a core file for every search - so replacing with conda rg for now - to be fixed in recipe later
+    && cp /opt/conda/bin/rg /opt/conda/share/sagemaker-code-editor/node_modules/@vscode/ripgrep/bin/ \
+    && rm -rf ${tdir}
+
 
 # Install glue kernels, and move to shared directory
 # Also patching base kernel so Studio background code doesn't start session silently
