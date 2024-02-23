@@ -75,8 +75,11 @@ RUN sudo ln -s $(which python3) /usr/bin/python
 RUN echo "print current active conda env"
 RUN conda env list
 
+RUN echo "print PATH var"
+RUN echo $PATH
+
 RUN echo "explicitly activate conda env"
-RUN /bin/bash -c "source /opt/conda/bin/activate base && sagemaker-code-editor --version"
+RUN /bin/bash -c "source /opt/conda/bin/activate base && /opt/conda/bin/sagemaker-code-editor --version"
 
 RUN echo "checking if code-editor is found"
 RUN sagemaker-code-editor --version
