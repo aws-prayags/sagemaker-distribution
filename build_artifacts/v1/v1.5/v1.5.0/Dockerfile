@@ -74,6 +74,10 @@ RUN sudo ln -s $(which python3) /usr/bin/python
 # TODO - Configure CodeEditor - Install extensions and set preferences
 RUN echo "print current active conda env"
 RUN conda env list
+
+RUN echo "explicitly activate conda env"
+RUN /bin/bash -c "conda activate base && sagemaker-code-editor --version"
+
 RUN echo "checking if code-editor is found"
 RUN sagemaker-code-editor --version
 
