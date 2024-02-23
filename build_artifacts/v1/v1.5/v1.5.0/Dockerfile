@@ -78,6 +78,9 @@ RUN conda env list
 RUN echo "print PATH var"
 RUN echo $PATH
 
+RUN echo "explicitly activate conda env and list packages"
+RUN /bin/bash -c "source /opt/conda/bin/activate base && conda list"
+
 RUN echo "explicitly activate conda env"
 RUN /bin/bash -c "source /opt/conda/bin/activate base && /opt/conda/bin/sagemaker-code-editor --version"
 
