@@ -72,21 +72,6 @@ ENV PATH="/opt/conda/bin:/opt/conda/condabin:$PATH"
 RUN sudo ln -s $(which python3) /usr/bin/python
 
 # TODO - Configure CodeEditor - Install extensions and set preferences
-RUN echo "print current active conda env"
-RUN conda env list
-
-RUN echo "print PATH var"
-RUN echo $PATH
-
-RUN echo "explicitly activate conda env and list packages"
-RUN /bin/bash -c "source /opt/conda/bin/activate base && conda list"
-
-RUN echo "explicitly activate conda env"
-RUN /bin/bash -c "source /opt/conda/bin/activate base && /opt/conda/bin/sagemaker-code-editor --version"
-
-RUN echo "checking if code-editor is found"
-RUN sagemaker-code-editor --version
-
 RUN mkdir /tmp/exts
 COPY dirs/etc/code-editor/extensions/*.vsix /tmp/exts/
 RUN \
