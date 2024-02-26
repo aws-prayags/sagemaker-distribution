@@ -85,7 +85,7 @@ RUN set -x; \
             aws-toolkit-vscode-1.99.0-a2b905e590d3.vsix \
     )\
     #Install the $exts
-    && for ext in "${exts[@]}"; do sagemaker-code-editor --install-extension "/tmp/exts/${ext}" --extensions-dir "${extensionloc}"; done
+    #&& for ext in "${exts[@]}"; do sagemaker-code-editor --install-extension "/tmp/exts/${ext}" --extensions-dir "${extensionloc}"; done
     
     # && mkdir -p /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/ \
     # # configure code editor settings 1/ disable a default env activate behavior of python  2/ set default python interpreter to cosmos env
