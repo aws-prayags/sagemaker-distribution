@@ -1,5 +1,7 @@
 {
     "python.terminal.activateEnvironment": false,
-    "python.defaultInterpreterPath": "/opt/conda/bin/python"
+    "python.defaultInterpreterPath": "/opt/conda/bin/python",
+    "extensions.autoCheckUpdates": false,
+    "extensions.autoUpdate": false
 }
   
