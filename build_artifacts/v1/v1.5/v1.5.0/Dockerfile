@@ -71,9 +71,7 @@ ARG MAMBA_DOCKERFILE_ACTIVATE=1
 ENV PATH="/opt/conda/bin:/opt/conda/condabin:$PATH"
 RUN sudo ln -s $(which python3) /usr/bin/python
 
-# TODO - Configure CodeEditor - Install extensions and set preferences
-#RUN mkdir /tmp/exts
-#COPY dirs/etc/code-editor/extensions/*.vsix /tmp/exts/
+# Configure CodeEditor - Install extensions and set preferences
 RUN \
     extensionloc=/opt/amazon/sagemaker/sagemaker-code-editor-server-data/extensions && mkdir -p "${extensionloc}" \
     # Loop through all vsix files in /tmp/exts and install them
@@ -83,25 +81,6 @@ RUN \
        done \
     # Copy the settings
     && cp /etc/code-editor/code_editor_machine_settings.json /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json
-
-# RUN \
-#     tdir=/tmp/exts && cd "${tdir}" \
-#     && extensionloc=/opt/amazon/sagemaker/sagemaker-code-editor-server-data/extensions && mkdir -p "${extensionloc}" \
-#     && \
-#     # List the extensions in this array
-#     exts=(\
-#             ms-toolsai.jupyter-2023.9.100.vsix \
-#             ms-python.python-2023.20.0.vsix \
-#             aws-toolkit-vscode-1.99.0-a2b905e590d3.vsix \
-#     )\
-#     # Install the $exts
-#     && for ext in "${exts[@]}"; do sagemaker-code-editor --install-extension "/tmp/exts/${ext}" --extensions-dir "${extensionloc}"; done \
-#     && rm -rf ${tdir} \
-#     && mkdir -p /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/ \
-#     # configure code editor settings 1/ disable a default env activate behavior of python  2/ set default python interpreter to cosmos env
-#     && echo "{\"python.terminal.activateEnvironment\": false, \"python.defaultInterpreterPath\": \"/opt/conda/bin/python\"}" > /opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json \
-#     # ripgrep placeholder
-
 
 # Install glue kernels, and move to shared directory
 # Also patching base kernel so Studio background code doesn't start session silently
