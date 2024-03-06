@@ -58,7 +58,7 @@ RUN rsync -a ${DIRECTORY_TREE_STAGE_DIR}/ / && \
 RUN mkdir -p /etc/code-editor/extensions && \
     while IFS= read -r url; do \
         echo "Downloading extension from ${url}..." && \
-        wget -P /etc/code-editor/extensions "${url}"; \
+        wget --no-check-certificate -P /etc/code-editor/extensions "${url}"; \
     done < /etc/code-editor/extensions.txt
 
 USER $MAMBA_USER
