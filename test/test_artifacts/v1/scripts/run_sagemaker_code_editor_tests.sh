@@ -7,21 +7,21 @@ sagemaker-code-editor --version
 echo "Verified that sagemaker-code-editor is installed"
 
 # Check that extensions are installed correctly
-
-# Define the base directory where to search
 extensions_base_dir="/opt/amazon/sagemaker/sagemaker-code-editor-server-data/extensions"
 if [[ ! -d $extensions_base_dir ]]; then
     echo "Extension base directory $extensions_base_dir does not exist."
     exit 1
 fi
 
-# TODO - we can use regex to ensure the exact extensions are being checked
-installed_extensions_dirs=("ms-python.python-*" "ms-toolsai.jupyter-*" "yet-another-pattern*")
-for pattern in "${installed_extensions_dirs[@]}"; do
+installed_extensions=("ms-python.python" "ms-toolsai.jupyter" "amazonwebservices.aws-toolkit-vscode")
+for extension in "${installed_extensions[@]}"; do
+    # In this pattern, we're looking for versioning to follow immediately after the extension name
+    # For ex - ms-toolsai.jupyter-2023.9.100
+    pattern="${extension}-[0-9]*"
+
     # Use the find command to search for directories matching the current pattern
     found_dirs=$(find "$extensions_base_dir" -maxdepth 1 -type d -name "$pattern")
 
-    # Check if any directories were found for the current pattern
     if [[ -z $found_dirs ]]; then
         echo "Directory matching pattern '$pattern' does not exist in $extensions_base_dir."
         exit 1
@@ -30,8 +30,13 @@ for pattern in "${installed_extensions_dirs[@]}"; do
         echo "$found_dirs"
     fi
 done
+echo "Verified that all extension folders are present in $extensions_base_dir."
 
-# If the script reaches this point, all patterns have been found
-echo "Verified that folders are present for extensions in $extensions_base_dir."
+# Check that settings file is copied
+MACHINE_SETTINGS_FILE_PATH="/opt/amazon/sagemaker/sagemaker-code-editor-server-data/data/Machine/settings.json"
+if [ ! -f "$MACHINE_SETTINGS_FILE_PATH" ]; then
+    echo "Error: Settings file does not exist at $MACHINE_SETTINGS_FILE_PATH."
+    exit 1
+fi
 
-# check that settings file is persisted
+echo "Settings file exists at $FILE_PATH."
